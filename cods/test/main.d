@@ -3,18 +3,9 @@ import std.conv;
 import std.container;
 import core.thread;
 
-import orange.serialization._;
-
 import networkSimulator;
-import network;
-
+import cods;
 import uc;
-import transactions;
-
-
-
-
-
 
 
 /**********************************
@@ -22,112 +13,6 @@ import transactions;
  * User-defined data type
  *
  **********************************/
-
-struct Pair(T) {
-  public T t1;
-  public T t2;
-}
-
-class Set(T) {
-  private bool[T] l;
-  public void ins(T t) {
-    l[t] = true;
-  }
-  public void del(T t) {
-    l.remove(t);
-  }
-  public T[] read() {
-    return l.keys;
-  }
-
-}
-
-
-/**********************************
- *
- * Code for the first process
- *
- **********************************/
-
-void ex1 () { 
-
-  Set!string students = UC.connect!(Set!string)("students");
-  Set!(Pair!string) teams = UC.connect!(Set!(Pair!string))("teams");
-
-  students.ins("a");
-  students.ins("b");
-  students.ins("c");
-  students.ins("d");
-
-  Pair!string team = {"a", "b"};
-  teams.ins(team);
-
-  Thread.sleep(dur!("msecs")(500));
-  students.del("d");
-
-
-  Thread.sleep(dur!("msecs")(500));
-  writeln(students.read());
-  writeln(teams.read());
-
-}
-
-/**********************************
- *
- * Code for the second process
- *
- **********************************/
-
-void ex2 () { 
-
-  Set!string students = UC.connect!(Set!string)("students");
-  Set!(Pair!string) teams = UC.connect!(Set!(Pair!string))("teams");
-
-  students.ins("a");
-  students.ins("b");
-  students.ins("c");
-  students.ins("d");
-
-  Pair!string team = {"a", "b"};
-  teams.ins(team);
-
-  Thread.sleep(dur!("msecs")(500));
-  Pair!string team2 = {"c", "d"};
-  teams.ins(team2);
-
-  Thread.sleep(dur!("msecs")(500));
-  writeln(students.read());
-  writeln(teams.read());
-
-}
-
-
-void main () 
-{ 
-  Network.registerType!(TransXY!UC);
-  auto network = new NetworkSimulator!2([
-    {
-      ex1();
-    }, {
-      ex2();
-    }]);
-  Network.configure(network);
-  network.start();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class Register(T) {
@@ -137,6 +22,20 @@ class Register(T) {
   }
   public T read() {
     return t;
+  }
+}
+
+/**********************************
+ *
+ * Transaction declaration
+ *
+ **********************************/
+
+class TransXY(CC) : Transaction!void {
+  public override void execute() {
+    Register!int x = UC.connect!(Register!int)("x");
+    Register!int y = UC.connect!(Register!int)("y");
+    y = 10 * x.read();
   }
 }
 
@@ -188,15 +87,6 @@ void p1 () {
 }
 
 
-
-
-
-
-
-
-
-
-
 /**********************************
  *
  * Code for the second process
@@ -240,18 +130,23 @@ void p2 () {
 }
 
 
-
-
 /**********************************
  *
- * Transaction declaration
+ * Main program
  *
  **********************************/
 
-class TransXY(CC) : Transaction!void {
-  public override void execute() {
-    Register!int x = UC.connect!(Register!int)("x");
-    Register!int y = UC.connect!(Register!int)("y");
-    y = 10 * x.read();
-  }
+
+void main () 
+{ 
+  Network.registerType!(TransXY!UC);
+  auto network = new NetworkSimulator!2([
+    {
+      p1();
+    }, {
+      p2();
+    }]);
+  Network.configure(network);
+  network.start();
 }
+

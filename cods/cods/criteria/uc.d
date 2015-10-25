@@ -46,7 +46,7 @@ class UC_Implementation : ConsistencyCriterionImplementation {
   private int id; //local clock
   private int clock; //local clock
   private Update_list!Operation updates; //list of updates in the lexico order
-  private Semaphore s; //list of updates in the lexico order
+  private Semaphore s; // protects from concurrent acytions : reception/operation
 
   this() {
     Network.registerType!UC_Message;
@@ -67,7 +67,7 @@ class UC_Implementation : ConsistencyCriterionImplementation {
     //if(not pure update)
     s.notify();
     //if(not pure query)
-    Network.getInstance().broadcast(m, false);
+    Network.getInstance().broadcast(m);
     return o;
   }
 

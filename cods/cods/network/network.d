@@ -12,7 +12,7 @@ abstract class Message {
 
 
 interface INetwork {
-  void broadcast(immutable(void)[] file, bool b);
+  void broadcast(immutable(void)[] file);//, bool b);
   int getID();
 }
 
@@ -83,10 +83,9 @@ class Network {
     m.on_receive();
   }
   
-
-  void broadcast(Message m, bool b) {
+  void broadcast(Message m) {
     auto file = serialize_update(m);
-    network.broadcast(file, b);
+    network.broadcast(file);
   }
 
   int getID() {

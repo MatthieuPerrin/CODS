@@ -89,10 +89,10 @@ class NetworkSimulator(int N) : INetwork {
     }
   }
   
-  void broadcast(immutable(void)[] file, bool b) {
-    uint  size = file.length;
+  void broadcast(immutable(void)[] file) {//, bool b) {
+    ulong size = cast(ulong)(file.length);
     for(int j = 0; j < N; j = j + 1) {
-      if(size>0 && (b || j != id)) {
+      if(size>0) {// && (b || j != id)) {
 	core.sys.posix.unistd.write(sonToSon[id][j][1], &size, ulong.sizeof);
 	core.sys.posix.unistd.write(sonToSon[id][j][1], cast(void*)(file), size);
       }
